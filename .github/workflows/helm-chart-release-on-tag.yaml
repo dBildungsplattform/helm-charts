@@ -25,10 +25,9 @@ jobs:
     permissions:
       contents: read
   release_helm:
-    needs: scan
+    needs: get_tag
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
     secrets: inherit
-    needs: get_tag
     with:
       chart_path: "."
       chart_name: ${{ needs.get_tag.outputs.chart }}

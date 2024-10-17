@@ -7,8 +7,7 @@ on:
       - 'status/**'
 
 concurrency:
-  group: status-chart
-  cancel-in-progress: true
+  group: chart-release
 
 jobs:
   release_helm:
