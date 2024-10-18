@@ -1,0 +1,38 @@
+name: Release Charts on Tag
+on:
+  push:
+    tags:
+      - '.+-[0-9]+.[0-9]+.[0-9]+'
+
+concurrency:
+  group: chart-release
+
+jobs:
+  get_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      chart: ${{ steps.nameTag.outputs.chart }}
+      version: ${{ steps.nameTag.outputs.version }}
+    steps:
+      - name: Filter Tag name
+        uses: olegtarasov/get-tag@v2.1
+        id: nameTag
+        with:
+          tagRegex: "(?<chart>.+?)-(?<version>[0-9]+.[0-9]+.[0-9]+)"
+      
+  scan:
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
+    permissions:
+      contents: read
+    with: 
+      chart_path: "."
+  release_helm:
+    needs: get_tag
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
+    secrets: inherit
+    with:
+      chart_path: "."
+      chart_name: ${{ needs.get_tag.outputs.chart }}
+      helm_chart_version_generation: specified
+      helm_chart_version: ${{ needs.get_tag.outputs.version }}
+      image_tag_generation: chart_yaml
