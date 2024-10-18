@@ -10,6 +10,10 @@ concurrency:
   group: chart-release
 
 jobs:
+  scan:
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
+    permissions:
+      contents: read
   release_helm:
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
     secrets: inherit
