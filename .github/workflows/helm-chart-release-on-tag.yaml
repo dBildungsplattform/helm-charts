@@ -24,6 +24,8 @@ jobs:
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
     permissions:
       contents: read
+    with: 
+      chart_path: "."
   release_helm:
     needs: get_tag
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
