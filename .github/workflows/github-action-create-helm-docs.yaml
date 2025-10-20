@@ -1,0 +1,16 @@
+name: Generate Helm-Docs
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  call-workflow:
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@10.2.0
+    with:
+      name: "devops"
+      email: "devops@dbildungsplattform.de"
+      src_path_helm: "*"
+    permissions:
+      contents: write
