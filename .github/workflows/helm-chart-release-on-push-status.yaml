@@ -3,24 +3,69 @@ on:
   push:
     branches-ignore:
       - 'main'
-    paths:
-      - 'status/**'
 
 concurrency:
   group: chart-release
-
 jobs:
-  scan:
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
+  get-context:
+    outputs:
+      tag: ${{ steps.get_tag.outputs.tag }}
+      context: ${{ steps.get_context.outputs.context }}
+    name: preperation
+    runs-on: ubuntu-latest
     permissions:
-      contents: read
-    with: 
-      chart_path: "."
-  release_helm:
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
-    secrets: inherit
-    with:
-      chart_path: "."
-      chart_name: status
-      helm_chart_version_generation: ticket_from_branch_timestamp
-      image_tag_generation: chart_yaml
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: get-context
+        id: get-context
+        run: |
+          git fetch origin main:main
+          echo "context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq)" >> $GITHUB_OUTPUT
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: >
+          npm install -g
+          semantic-release
+          @semantic-release/git
+      - name: Run Semantic-Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+      - id: get_tag
+        run: |
+         tag=$(git describe --tags)
+         echo "tag=$tag" >> $GITHUB_OUTPUT
+      - name: Set Chart.yml version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.version = ${{ needs.get_tag.outputs.tag }}' ${{ needs.get_context.outputs.context }}/Chart.yaml
+      - name: Commit report
+        run: |
+          git config --global user.name 'Your Name'
+          git config --global user.email 'your-username@users.noreply.github.com'
+          git commit -am "Automated tag"
+          git push
+
+  # scan:
+  #   uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
+  #   permissions:
+  #     contents: read
+  #   with: 
+  #     chart_path: "."
+  # release_helm:
+  #   uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
+  #   secrets: inherit
+  #   with:
+  #     chart_path: "."
+  #     chart_name: status
+  #     helm_chart_version_generation: ticket_from_branch_timestamp
+  #     image_tag_generation: chart_yaml
