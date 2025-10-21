@@ -8,9 +8,6 @@ concurrency:
   group: chart-release
 jobs:
   get-context:
-    outputs:
-      tag: ${{ steps.get_tag.outputs.tag }}
-      context: ${{ steps.get_context.outputs.context }}
     name: preperation
     runs-on: ubuntu-latest
     permissions:
@@ -26,7 +23,9 @@ jobs:
         id: get-context
         run: |
           git fetch origin main:main
-          echo "context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq)" >> $GITHUB_OUTPUT
+          context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq | grep -v .releaserc)
+          echo $context
+          echo "CONTEXT=$context" >> $GITHUB_ENV
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,11 +42,12 @@ jobs:
       - id: get_tag
         run: |
          tag=$(git describe --tags)
-         echo "tag=$tag" >> $GITHUB_OUTPUT
+         echo $tag
+         echo "TAG=$tag" >> $GITHUB_ENV
       - name: Set Chart.yml version
         uses: mikefarah/yq@master
         with:
-          cmd: yq '.version = ${{ needs.get_tag.outputs.tag }}' ${{ needs.get_context.outputs.context }}/Chart.yaml
+          cmd: yq -i '.version = ${{ env.TAG }}' ${{ env.CONTEXT }}/Chart.yaml
       - name: Commit report
         run: |
           git config --global user.name 'Your Name'

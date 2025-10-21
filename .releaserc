@@ -2,9 +2,6 @@
   "branches": ["release","tmp/test-branch"],
   "tagFormat": "${version}",
   "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/git",
-    "@semantic-release/github"
+
   ]
 }
