@@ -7,37 +7,14 @@ on:
     paths:
       - '*/**'
       - '!.github/**'
-
+  push:
 jobs:
   preperation:
-    runs-on: ubuntu-latest
-    outputs:
-      context: ${{ steps.get-context.outputs.context }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: get-context
-        id: get-context
-        run: |
-          git fetch origin main:main
-          context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq )
-          if [ -z "${context}" ]
-          then
-            echo "No changes in directory, stopping here..."
-            exit 78
-          elif test "$( echo "$context" | wc -l )" -gt 1
-          then
-            echo "Changes in more than one directory, stopping here..."
-            exit 78
-          else
-            echo $context
-            echo "context=$context" >> "$GITHUB_OUTPUT"
-          fi
-  call-workflow:
-    if: needs.preperation.result == 'success'
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@10.2.0
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/helm-preperation.yaml@10.3.0
+  helm-docs:
+    # https://github.com/actions/runner/issues/1917#issuecomment-2505051075
+    needs: [preperation]
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@10.3.0
     with:
       name: "devops"
       email: "devops@dbildungsplattform.de"
