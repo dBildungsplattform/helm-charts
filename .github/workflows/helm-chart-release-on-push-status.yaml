@@ -11,8 +11,7 @@ jobs:
   preperation:
     runs-on: ubuntu-latest
     outputs:
-      context: ${{ steps.get_context.outputs.context }}
-      run_jobs: ${{ steps.set_output.outputs.run_jobs }}
+      context: ${{ steps.get-context.outputs.context }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,19 +25,16 @@ jobs:
           if [ -z "${context}" ]
           then
             echo "No changes in directory, stopping here..."
-            echo "::set-output name=run_jobs::false"
-            echo context=false
             exit 78
-          elif test "$( echo "$context" | wc -l )" -ge 1
+          elif test "$( echo "$context" | wc -l )" -gt 1
           then
             echo "Changes in more than one directory, stopping here..."
-            echo "::set-output name=run_jobs::false"
-            echo context=false
             exit 78
           else
-            echo "::set-output name=run_jobs::true"
+            echo $context
+            echo "context=$context" >> "$GITHUB_OUTPUT"
           fi
-          echo "context=$context" >> "$GITHUB_OUTPUT"
+
   scan:
     needs: [preperation]
     if: needs.preperation.result == 'success'
