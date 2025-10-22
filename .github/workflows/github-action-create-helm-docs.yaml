@@ -6,11 +6,33 @@ on:
       - main
 
 jobs:
+  preperation:
+    runs-on: ubuntu-latest
+    outputs:
+      context: ${{ steps.get-context.outputs.context }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: get-context
+        id: get-context
+        run: |
+          git fetch origin main:main
+          context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq )
+          echo $context
+          if test "$( wc -w < "$context" )" -gt 1
+          then
+            echo "Changes in more than one directory, stopping here..."
+            context=false
+          fi
+          echo "context=$context" >> "$GITHUB_OUTPUT"
   call-workflow:
+    if: needs.preperation.outputs.context != 'false'
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@10.2.0
     with:
       name: "devops"
       email: "devops@dbildungsplattform.de"
-      src_path_helm: "*"
+      src_path_helm: "${{needs.preperation.outputs.context}}"
     permissions:
       contents: write

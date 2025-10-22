@@ -1,26 +1,59 @@
-name: Release Status Chart on branch
+name: Release Chart on branch
 on:
   push:
     branches-ignore:
       - 'main'
-    paths:
-      - 'status/**'
 
 concurrency:
   group: chart-release
 
 jobs:
+  preperation:
+    runs-on: ubuntu-latest
+    outputs:
+      context: ${{ steps.get_context.outputs.context }}
+      run_jobs: ${{ steps.set_output.outputs.run_jobs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: get-context
+        id: get-context
+        run: |
+          git fetch origin main:main
+          context=$(git diff --name-only $(git merge-base main HEAD) | grep -v .github | cut -d/ -f1 | uniq )
+          if [ -z "${context}" ]
+          then
+            echo "No changes in directory, stopping here..."
+            echo "::set-output name=run_jobs::false"
+            echo context=false
+            exit 78
+          elif test "$( echo "$context" | wc -l )" -ge 1
+          then
+            echo "Changes in more than one directory, stopping here..."
+            echo "::set-output name=run_jobs::false"
+            echo context=false
+            exit 78
+          else
+            echo "::set-output name=run_jobs::true"
+          fi
+          echo "context=$context" >> "$GITHUB_OUTPUT"
   scan:
+    needs: [preperation]
+    if: needs.preperation.result == 'success'
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
     permissions:
       contents: read
     with: 
       chart_path: "."
   release_helm:
+    needs: [preperation]
+    if: needs.preperation.result == 'success'
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
     secrets: inherit
     with:
       chart_path: "."
-      chart_name: status
+      chart_name: ${{needs.preperation.outputs.context}}
       helm_chart_version_generation: ticket_from_branch_timestamp
       image_tag_generation: chart_yaml
