@@ -7,17 +7,17 @@ on:
     paths:
       - '*/**'
       - '!.github/**'
-  push:
+
 jobs:
   preperation:
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/helm-preperation.yaml@7.6.0
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/helm-preperation.yaml@7
   helm-docs:
     # https://github.com/actions/runner/issues/1917#issuecomment-2505051075
     needs: [preperation]
-    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@7.6.0
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/generate-helm-docs.yaml@7
     with:
-      name: "devops"
-      email: "devops@dbildungsplattform.de"
+      name: "${{ github.actor }}"
+      email: "${{ github.actor }}@users.noreply.github.com"
       src_path_helm: ${{needs.preperation.outputs.context}}
     permissions:
       contents: write
