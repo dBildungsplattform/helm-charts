@@ -1,26 +1,33 @@
-name: Release Status Chart on branch
+name: Release Chart on branch
 on:
   push:
     branches-ignore:
       - 'main'
     paths:
-      - 'status/**'
+      - '*/**'
+      - '!.github/**'
 
 concurrency:
   group: chart-release
 
 jobs:
+  preperation:
+    uses: dBildungsplattform/dbp-github-workflows/.github/workflows/helm-preperation.yaml@7
   scan:
+    # https://github.com/actions/runner/issues/1917#issuecomment-2505051075
+    needs: [preperation]
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/check-helm-kics.yaml@7
     permissions:
       contents: read
     with: 
       chart_path: "."
   release_helm:
+    # https://github.com/actions/runner/issues/1917#issuecomment-2505051075
+    needs: [preperation]
     uses: dBildungsplattform/dbp-github-workflows/.github/workflows/chart-release.yaml@7
     secrets: inherit
     with:
       chart_path: "."
-      chart_name: status
+      chart_name: ${{needs.preperation.outputs.context}}
       helm_chart_version_generation: ticket_from_branch_timestamp
       image_tag_generation: chart_yaml
