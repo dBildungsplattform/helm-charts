@@ -2,18 +2,22 @@
 {{- $chart_labels := include "cronjob.labels" . }}
 {{- $chart_selector_labels := include "cronjob.selectorLabels" . }}
 {{- $service_account_name := include "cronjob.serviceAccountName" . }}
-{{- $tag := .Values.image.tag }}
 {{- $image_pull_secrets := .Values.imagePullSecrets }}
 
+{{- $globalRepository := (and $.Values.image $.Values.image.repository) }}
+{{- $globalTag := (and $.Values.image $.Values.image.tag) }}
+{{- $globalPullPolicy := (and $.Values.image $.Values.image.pullPolicy) }}
+
 {{- range $job := .Values.jobs }}
-{{- $image := print $.Values.image.repository ":" $tag }}
-{{- $image_pull_policy := $.Values.image.pullPolicy }}
-{{- if .image }}
-  {{- $image = print .image.repository ":" (default $tag .image.tag) }}
-  {{- if .image.pullPolicy }}
-    {{- $image_pull_policy = .image.pullPolicy }}
-  {{- end }}
-{{- end }}
+
+{{- $jobRepository := (and $job.image $job.image.repository) }}
+{{- $jobTag := (and $job.image $job.image.tag) }}
+{{- $jobPullPolicy := (and $job.image $job.image.pullPolicy) }}
+
+{{- $repo := required (printf "Repository is required for job %q! Set jobs[].image.repository or global image.repository" $job.name) (coalesce $jobRepository $globalRepository) }}
+{{- $tag := required (printf "Tag is required for job %q! Set either jobs[].image.tag or global image.tag" $job.name) (coalesce $jobTag $globalTag) }}
+{{- $image := printf "%s:%s" $repo $tag }}
+{{- $image_pull_policy := coalesce $jobPullPolicy $globalPullPolicy }}
 
 {{- $env := $.Values.env }}
 {{- if .env }}
