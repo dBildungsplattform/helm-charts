@@ -76,8 +76,8 @@ postgresql:
   enabled: true
   auth:
     username: "status"
-    postgresPassword: ""
-    password: ""
+    postgresPassword: "status"
+    password: "status"
     database: "status"
     existingSecret: ""
     secretKeys:
