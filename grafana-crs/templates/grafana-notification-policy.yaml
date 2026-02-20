@@ -1,4 +1,4 @@
-{{- range .Values.grafana_notification_policies }}
+{{- range .Values.notification_policies }}
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaNotificationPolicy

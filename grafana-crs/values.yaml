@@ -9,16 +9,10 @@ grafana_storage_size: 10Gi
 grafana_ingress_class_name: nginx
 grafana_keycloak_config:
   enabled: false
-
+grafana_oauth_envs: []
 grafana_domain: ""
 
-grafana_default_envs: []
-
-grafana_smtp_envs: []
-
-grafana_oauth_envs: []
-
-grafana_notification_policies: []
+notification_policies: []
   # Example:
   # - name: default-np
   #   contact_point: teamchat-infra-dev
@@ -31,7 +25,7 @@ grafana_notification_policies: []
   #         value: "dev"
 #       contact_point: teamchat-infra-dev
 
-grafana_mute_timings: []
+mute_timings: []
   # Example:
   # - name: weekend
   #   times:
@@ -44,20 +38,20 @@ grafana_mute_timings: []
   #     end: "23:59"
   #   weekdays: ["monday:friday"]
 
-grafana_dashboards: []
+dashboards: []
   # Example:
   # - name: events
   #   folder: Monitoring
   #   json: "{}"
 
-grafana_contact_points: []
+contact_points: []
   # Example:
   # - name: teamchat-infra-dev
   #   type: "Webhook"
   #   settings:
 #     url: "https://rocketchat/hooks/room/token"
 
-grafana_folders: []
+folders: []
   # Example:
   # - name: playground
   #   titel: Playground
@@ -75,7 +69,7 @@ grafana_folders: []
   #       ]
 #     }
 
-grafana_datasources: []
+datasources: []
   # Example:
   # - name: Loki
   #   type: loki
