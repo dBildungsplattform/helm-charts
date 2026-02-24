@@ -1,0 +1,17 @@
+{{- range .Values.notificationPolicies }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaNotificationPolicy
+metadata:
+  name: {{ include "grafana-crs.fullname" $ }}-{{ .name }}
+spec:
+  instanceSelector:
+    matchLabels:
+      {{- include "grafana-crs.labels" $ | nindent 8 }}
+  route:
+    receiver: {{ .contact_point }}
+    group_by:
+      {{ .group_by }}
+    routes:
+      {{- toJson .routes | nindent 6 }}
+{{- end }}

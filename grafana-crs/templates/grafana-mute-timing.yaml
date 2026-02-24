@@ -1,0 +1,15 @@
+{{- range .Values.muteTimings }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaMuteTiming
+metadata:
+  name: {{ include "grafana-crs.fullname" $ }}-{{ .name }}
+spec:
+  instanceSelector:
+    matchLabels:
+      {{- include "grafana-crs.labels" $ | nindent 8 }}
+  name: {{ .name }}
+  editable: false
+  time_intervals:
+    {{- toJson .time_intervals | nindent 4 }}
+{{- end }}

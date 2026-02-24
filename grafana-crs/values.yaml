@@ -1,0 +1,69 @@
+---
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+grafana:
+  grafanaVersion: 12.1.0
+  logMode: "console"
+  storageSize: 10Gi
+  ingressClass: nginx
+  keycloakConfig:
+    enabled: false
+  oauthEnvs: []
+  envs: []
+  domain: ""
+
+notificationPolicies: []
+  # Example:
+  # - name: default-np
+  #   contact_point: teamchat-infra-dev
+  #   group_by: ["alertname"]
+  #   routes:
+  #     - name: teamchat-dev
+  #       matcher: |
+  #         - rc-target
+  #         - =
+  #         - dev
+  #       contact_point: teamchat-infra-dev
+
+muteTimings: []
+
+dashboards: []
+  # Example:
+  # - name: events
+  #   folder: Monitoring
+  #   json: "{}"
+
+contactPoints: []
+  # Example:
+  # - name: teamchat-infra-dev
+  #   type: "Webhook"
+  #   settings:
+  #     url: "https://rocketchat/hooks/room/token"
+
+folders: []
+  # Example:
+  # - name: playground
+  #   titel: Playground
+  #   permissions: |
+  #     {
+  #       "items": [
+  #         {
+  #           "role": "Admin",
+  #           "permission": 4
+  #         },
+  #         {
+  #           "role": "Editor",
+  #           "permission": 2
+  #         }
+  #       ]
+  #     }
+
+datasources: []
+  # Example:
+  # - name: Loki
+  #   type: loki
+  #   url: http://loki:80
+
+alertRuleGroups: []
