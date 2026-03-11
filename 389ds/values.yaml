@@ -51,11 +51,11 @@ imagePullSecrets: []
 
 resources:
   limits:
-    memory: "1Gi"
-    cpu: "500m"
-  requests:
-    memory: "1Gi"
+    memory: "256Mi"
     cpu: "250m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
 livenessProbe:
   exec:
     command:
