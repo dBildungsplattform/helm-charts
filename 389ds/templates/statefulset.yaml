@@ -75,6 +75,7 @@ spec:
         - name: custom-schema
           mountPath: '/etc/dirsrv/schema/98custom.ldif'
           subPath: 98custom.ldif
+          readOnly: true
         {{- end }}
       {{- if .Values.metrics.enabled }}
       - name: telegraf
