@@ -35,7 +35,7 @@ spec:
       - name: dirsrv-container
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- /* bootstrap script waits for ds 389 to become available and then progresses (not-persistent cases) */}}
+        {{- /* bootstrap script waits for ds 389 to become available and then progresses (non-persistent cases) */}}
         {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
         command: ["/bin/sh", "-c", "/scripts/bootstrap.sh & exec /usr/lib/dirsrv/dscontainer -r"]
         {{- end }}
@@ -72,7 +72,9 @@ spec:
         - name: DS_ERRORLOG_LEVEL
           value: "8192"
         volumeMounts:
+        {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
         {{- include "389ds.bootstrapVolumeMount" . | nindent 8 }}
+        {{- end }}
         - name: data
           mountPath: "/data"
         {{- if .Values.tls.existingSecret }}
