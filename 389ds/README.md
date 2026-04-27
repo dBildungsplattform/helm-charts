@@ -13,9 +13,11 @@ A Helm chart for Kubernetes
 | dsDmPassword.secretKey | string | `""` |  |
 | dsDmPassword.secretName | string | `""` |  |
 | dsSuffixName | string | `"dc=example,dc=com"` |  |
+| extendedBootstrap.annotations."helm.sh/hook" | string | `"post-install"` |  |
 | extendedBootstrap.backendName | string | `"userroot"` |  |
+| extendedBootstrap.configOverrides | string | `"nsslapd-allow-anonymous-access=off"` | Space separated config to set via dsconf config replace on bootstrap |
 | extendedBootstrap.enabled | bool | `false` |  |
-| extendedBootstrap.helmHook | string | `"post-install"` |  |
+| extendedBootstrap.importLdif | string | `""` | Ldif to import on bootstrap. Note that Directory Server first removes all existing data from the database and, subsequently, imports the data from the LDIF file |
 | extendedBootstrap.peers | string | `"port389ds-0.port389ds-headless"` |  |
 | extendedBootstrap.rmPassword.secretKey | string | `""` |  |
 | extendedBootstrap.rmPassword.secretName | string | `""` |  |
@@ -27,6 +29,7 @@ A Helm chart for Kubernetes
 | imagePullSecrets | list | `[]` |  |
 | livenessProbe.exec.command[0] | string | `"/usr/lib/dirsrv/dscontainer"` |  |
 | livenessProbe.exec.command[1] | string | `"-H"` |  |
+| livenessProbe.timeoutSeconds | int | `5` |  |
 | metrics.bind.dn | string | `""` |  |
 | metrics.bind.secretKey | string | `""` |  |
 | metrics.bind.secretName | string | `""` |  |
@@ -40,14 +43,16 @@ A Helm chart for Kubernetes
 | metrics.resources.requests.memory | string | `"64Mi"` |  |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
+| persistence.enabled | bool | `true` |  |
 | persistence.size | string | `"10Gi"` |  |
 | podAnnotations | object | `{}` |  |
 | podLabels | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
 | readinessProbe.exec.command[0] | string | `"/usr/lib/dirsrv/dscontainer"` |  |
 | readinessProbe.exec.command[1] | string | `"-H"` |  |
+| readinessProbe.timeoutSeconds | int | `5` |  |
 | replicaCount | int | `1` |  |
-| resources.limits.cpu | string | `"250m"` |  |
+| resources.limits.cpu | string | `"1"` |  |
 | resources.limits.memory | string | `"256Mi"` |  |
 | resources.requests.cpu | string | `"100m"` |  |
 | resources.requests.memory | string | `"256Mi"` |  |
@@ -57,6 +62,10 @@ A Helm chart for Kubernetes
 | serviceAccount.automount | bool | `false` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
+| startupProbe.exec.command[0] | string | `"/usr/lib/dirsrv/dscontainer"` |  |
+| startupProbe.exec.command[1] | string | `"-H"` |  |
+| startupProbe.initialDelaySeconds | int | `30` |  |
+| startupProbe.timeoutSeconds | int | `5` |  |
 | tls.certKey | string | `"tls.crt"` |  |
 | tls.existingSecret | string | `""` |  |
 | tls.keyKey | string | `"tls.key"` |  |

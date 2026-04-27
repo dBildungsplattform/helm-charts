@@ -1,3 +1,7 @@
+{{- if and (ne (int .Values.replicaCount) 1) (not .Values.persistence.enabled) }}
+{{- fail "replicaCount must be 1 when persistence is disabled" }}
+{{- end }}
+
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
@@ -35,6 +39,10 @@ spec:
       - name: dirsrv-container
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- /* bootstrap script waits for ds 389 to become available and then progresses (cannot use helm postinstall hook in non-persistent case) */}}
+        {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
+        command: ["/bin/sh", "-c", "/scripts/bootstrap.sh & exec /usr/lib/dirsrv/dscontainer -r"]
+        {{- end }}
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
@@ -50,6 +58,10 @@ spec:
         readinessProbe:
           {{- toYaml . | nindent 10 }}
         {{- end }}
+        {{- with .Values.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         - name: DS_DM_PASSWORD
           valueFrom:
@@ -58,9 +70,15 @@ spec:
               key: {{ .Values.dsDmPassword.secretKey | quote }}
         - name: DS_SUFFIX_NAME
           value: {{ .Values.dsSuffixName | quote }}
+        {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
+        {{- include "389ds.bootstrapEnv" . | nindent 8 }}
+        {{- end }}
         - name: DS_ERRORLOG_LEVEL
           value: "8192"
         volumeMounts:
+        {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
+        {{- include "389ds.bootstrapVolumeMount" . | nindent 8 }}
+        {{- end }}
         - name: data
           mountPath: "/data"
         {{- if .Values.tls.existingSecret }}
@@ -75,6 +93,12 @@ spec:
         - name: custom-schema
           mountPath: '/etc/dirsrv/schema/98custom.ldif'
           subPath: 98custom.ldif
+          readOnly: true
+        {{- end }}
+        {{- if .Values.extendedBootstrap.importLdif }}
+        - name: import-ldif
+          mountPath: '/data/ldif/import.ldif'
+          subPath: import.ldif
           readOnly: true
         {{- end }}
       {{- if .Values.metrics.enabled }}
@@ -115,6 +139,14 @@ spec:
         configMap:
           name: {{ include "389ds.fullname" . }}-custom-schema
       {{- end }}
+      {{- if and .Values.extendedBootstrap.enabled (not .Values.persistence.enabled) }}
+      {{- include "389ds.bootstrapVolume" . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.extendedBootstrap.importLdif }}
+      - name: import-ldif
+        configMap:
+          name: {{ include "389ds.fullname" . }}-import-ldif
+      {{- end }}
       {{- if .Values.tls.existingSecret }}
       - name: dirsrv-tls
         secret:
@@ -132,6 +164,10 @@ spec:
           items:
           - key: ca.crt
             path: ca.crt
+      {{- if not .Values.persistence.enabled }}
+      - name: data
+        emptyDir: {}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -144,6 +180,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
       name: data
@@ -152,3 +189,4 @@ spec:
       resources:
         requests:
           storage: {{ .Values.persistence.size }}
+  {{- end }}
