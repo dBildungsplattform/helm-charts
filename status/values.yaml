@@ -91,10 +91,14 @@ postgresql:
       enabled: true
       size: 10Gi
 
-# -- Redis settings. See https://github.com/bitnami/charts/tree/master/bitnami/redis fro details
-redis:
+# -- Valkey settings. See https://github.com/dBildungsplattform/dbp-valkey/tree/main for details
+valkey:
   enabled: true
-  architecture: standalone
+  useDeploymentWhenNonHA: false
+  haMode:
+    enabled: false
+
+
 
 env:
   # -- Default settings for cachet / status-service. See https://docs.cachethq.io/docs/installing-cachet for more information
@@ -120,6 +124,8 @@ env:
     MAIL_PORT: 25
     MAIL_NAME: ""
     MAIL_ENCRYPTION: tls
+    # REDIS_HOST must be set when valkey.enabled=false
+    REDIS_HOST: ""
 
   # -- Private environment variables which are stores in a kubernetes secret
   private:
