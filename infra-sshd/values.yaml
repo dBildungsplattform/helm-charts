@@ -1,0 +1,55 @@
+# Default values for infra-sshd.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: schulcloud/infra-sshd
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "stable"
+service:
+  # standalone: false
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 22
+    targetPort: 22
+    nodePort: 30022
+  # type: ClusterIP
+  # ports:
+  # - protocol: TCP
+  #   port: 22
+  #   targetPort: 22
+  # type: LoadBalancer
+  # externalIPs:
+  #   - x.x.x.x
+  # ports:
+  #   - port: 2222
+  #     targetPort: 22
+
+sshdConfig:
+
+dockerEntrypoint:
+
+additionalConfigmap: {}
+  # name: 
+  # data:
+additionalVolumes: []
+additionalVolumeMounts: []
+
+imagePullSecrets: []
+livenessProbe:
+  # -- Whether to apply the livenessProbe check to pod.
+  enabled: true
+  # Check to confirm liveness
+  tcpSocket:
+    port: 22
+  # Time to wait before starting the first probe
+  initialDelaySeconds: 30
+  # How often (in seconds) the SSHD container liveness probe will run
+  periodSeconds: 10
+  # The number of consecutive failures of the SSHD container liveness probe before the pod fails liveness checks.
+  failureThreshold: 3
+
+extraObjects: []

@@ -8,8 +8,9 @@ set -euof pipefail
 BOOTSTRAP_RM_NAME="rmanager"
 LDAP_PORT=3389
 BIND_DN="cn=Directory Manager"
+IMPORT_LDIF_NAME="import.ldif"
 
-replica_sum=$(echo "$BOOTSTRAP_HA_PEER_HOSTS" | wc -w)
+replica_sum=$(echo "${BOOTSTRAP_HA_PEER_HOSTS}" | wc -w)
 replica_id=0
 for ha_peer_host_outer in ${BOOTSTRAP_HA_PEER_HOSTS}; do
   replica_id=$((replica_id+1))
@@ -29,12 +30,18 @@ for ha_peer_host_outer in ${BOOTSTRAP_HA_PEER_HOSTS}; do
 
   echo "Waiting for Directory Server to be ready..."
   until dsconf "${DSCONF_PARAMS[@]}" monitor server >/dev/null 2>&1; do
+    echo "⌛ Directory Server is not available (yet)."
     sleep 5
   done
   echo "Directory Server is up."
 
-  echo "Disallowing anonymous access..."
-  dsconf "${DSCONF_PARAMS[@]}" config replace nsslapd-allow-anonymous-access=off
+  if [[ -n "${BOOTSTRAP_CONFIG_OVERRIDES}" ]]; then
+    echo "Applying configuration overrides..."
+    for kv in ${BOOTSTRAP_CONFIG_OVERRIDES}; do
+      echo "Setting ${kv}"
+      dsconf "${DSCONF_PARAMS[@]}" config replace "${kv}"
+    done
+  fi
 
   echo "Ensuring backend exists..."
   if ! dsconf "${DSCONF_PARAMS[@]}" backend suffix get "${DS_SUFFIX_NAME}" >/dev/null 2>&1; then
@@ -44,6 +51,13 @@ for ha_peer_host_outer in ${BOOTSTRAP_HA_PEER_HOSTS}; do
       --create-suffix
   else
     echo "Backend already exists."
+  fi
+
+  if [[ "${BOOTSTRAP_IMPORT_LDIF}" == "true" ]]; then
+    if [[ "${replica_id}" == "${replica_sum}" ]]; then
+      echo "Importing LDIF..."
+      dsconf "${DSCONF_PARAMS[@]}" backend import "${BOOTSTRAP_BACKEND_NAME}" "${IMPORT_LDIF_NAME}"
+    fi
   fi
 
   echo "Ensuring replication is enabled..."
@@ -88,7 +102,7 @@ for ha_peer_host_outer in ${BOOTSTRAP_HA_PEER_HOSTS}; do
 
     # Lastly, initialize replication agreements once
     if [[ "${replica_id}" == "${replica_sum}" ]]; then
-      echo "Initializing replication agreement to ${ha_peer_host_inner}..."
+      echo "Initializing replication agreement to ${ha_peer_host_inner} (remote/consumer)..."
       dsconf "${DSCONF_PARAMS[@]}" repl-agmt init "${ha_peer_host_inner}" --suffix "${DS_SUFFIX_NAME}"
     fi
   done
