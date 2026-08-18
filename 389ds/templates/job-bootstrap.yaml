@@ -21,8 +21,10 @@ spec:
       - name: dirsrv-bootstrap
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.extendedBootstrap.securityContext }}
         securityContext:
-          readOnlyRootFilesystem: true
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
         {{- include "389ds.bootstrapVolumeMount" . | nindent 8 }}
         command: ["/scripts/bootstrap.sh"]
@@ -37,6 +39,10 @@ spec:
         {{- include "389ds.bootstrapEnv" . | nindent 8 }}
       volumes:
         {{- include "389ds.bootstrapVolume" . | nindent 8 }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       restartPolicy: OnFailure
   backoffLimit: 4
 {{ end }}
